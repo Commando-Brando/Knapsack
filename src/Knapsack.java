@@ -1,7 +1,4 @@
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -61,7 +58,7 @@ public class Knapsack {
         for(int i = 0; i < BUDGET + 1; i++){
             // item price is <= i we store the price else cell equals 0
             if(itemsList.get(0).price <= i)
-                c[0][i] = itemsList.get(0).price;
+                c[0][i] = itemsList.get(0).value;
             else
                 c[0][i] = 0;
         }
@@ -74,14 +71,13 @@ public class Knapsack {
                  * else set it equal to the max of the ( item.price + ( the cell of previous row at column that's j - item.price ) )
                  * compared to the previous row's cell at the current column
                  */
-                if(itemPrice > j){
+                if(itemPrice > j) {
                     c[i][j] = c[i-1][j];
                 } else {
                     c[i][j] = max(itemsList.get(i), c[i-1][j-itemPrice], c[i-1][j]);
                 }
             }
         }
-        //printTable(c, rows, BUDGET + 1);
     }
 
     /****************************************************************
@@ -95,19 +91,29 @@ public class Knapsack {
     public static void traceBack(int[][] c, int rows, List<Item> itemsList) {
         int i = rows - 1;
         int j = BUDGET;
+        List<Item> itemsUsed = new ArrayList<>();
 
-        while(c[i][j] != 0){
-            //if current cell at previous row at current column != current cell then current item is used and go one row up and item.price columns left
-            //else the previous row at current column is same value so then current item was not used so go there
+        while(c[i][j] != 0) {
+            // if current cell at previous row at current column != current cell then current item is used and go one row up and item.price columns left
+            // else the previous row at current column is same value so then current item was not used so go there
             if (c[i][j] != c[i - 1][j]) {
-                System.out.println(itemsList.get(i).name);
                 j -= itemsList.get(i).price;
                 i--;
+
+                if(c[i][j] != 0) { // for proper printing
+                    while(c[i-1][j] == c[i][j])
+                        i--;
+                    itemsUsed.add(itemsList.get(i));
+                }
             } else {
-                i--;
-                System.out.println(itemsList.get(i).name);
+                while(c[i-1][j] == c[i][j])
+                    i--;
+                itemsUsed.add(itemsList.get(i));
             }
         }
+
+        for(int k = itemsUsed.size() - 1; k > -1; k--)
+            System.out.println(itemsUsed.get(k).name);
     }
 
     public static void main(String[] args) {
@@ -133,12 +139,12 @@ public class Knapsack {
             e.printStackTrace();
         }
 
-        // initialize the dynamic programming table matrix
+        // initialize the dynamic programming table matrix with BUDGET+1 columns to account for 0s column
         int[][] c = new int[itemList.size() + 1][BUDGET + 1];
 
         // if there are no items return
         if(itemList.isEmpty()){
-            System.out.println("ERROR: No items in the list\n");
+            System.out.println("ERROR: No items in the list optimal value 0\n");
             System.exit(-1);
         }
 
@@ -150,24 +156,5 @@ public class Knapsack {
 
         // traces through table to find used items and prints them
         traceBack(c, itemList.size(), itemList);
-
-        /*
-        // prints out all items in the list for debugging
-        for(Item i : itemList){
-            System.out.println(i);
-        }
-        System.out.println(itemList.size() + " items in list");
-         */
     }
-
-    // prints out the table (debug function)
-    public static void printTable(int[][] c, int rows, int columns){
-        for(int i = 0; i < rows; i++){
-            for(int j = 0; j < columns; j++){
-                System.out.print(c[i][j] + " ");
-            }
-            System.out.println();
-        }
-    }
-
 }
